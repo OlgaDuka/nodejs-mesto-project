@@ -20,7 +20,12 @@ export const createCard = async (
   try {
     const { name, link } = req.body;
     const userId = res.locals.user;
-    const newCard = await Card.create({ name, link, owner: userId });
+    const newCard = await Card.create({
+      name,
+      link,
+      owner: userId,
+      createdAt: Date.now(),
+    });
     return res.status(constants.HTTP_STATUS_CREATED).send(newCard);
   } catch (err) {
     if (err instanceof MongooseError.ValidationError) {
@@ -40,6 +45,9 @@ export const deleteCard = async (
       .orFail(() => new NotFoundError('Карточка с указанным _id не найдена'));
     return res.status(constants.HTTP_STATUS_OK).send(cardDel);
   } catch (err) {
+    if (err instanceof MongooseError.CastError) {
+      next(new BadRequestError('Передан невалидный _id карточки'));
+    }
     return next(err);
   }
 };
@@ -58,8 +66,8 @@ export const likeCard = async (
       .orFail(() => new NotFoundError('Передан несуществующий _id карточки'));
     return res.status(constants.HTTP_STATUS_OK).send(cardLike);
   } catch (err) {
-    if (err instanceof MongooseError.ValidationError) {
-      return next(new BadRequestError('Переданы некорректные данные для постановки лайка'));
+    if (err instanceof MongooseError.CastError) {
+      next(new BadRequestError('Передан невалидный _id карточки'));
     }
     return next(err);
   }
@@ -80,8 +88,8 @@ export const dislikeCard = async (
       .orFail(() => new NotFoundError('Передан несуществующий _id карточки'));
     return res.status(constants.HTTP_STATUS_OK).send(cardDislike);
   } catch (err) {
-    if (err instanceof MongooseError.ValidationError) {
-      return next(new BadRequestError('Переданы некорректные данные для снятия лайка'));
+    if (err instanceof MongooseError.CastError) {
+      next(new BadRequestError('Передан невалидный _id карточки'));
     }
     return next(err);
   }

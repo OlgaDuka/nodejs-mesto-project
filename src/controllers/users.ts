@@ -17,12 +17,12 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
     const { userId } = req.params;
     const user = await User.findById(userId)
       .orFail(() => new NotFoundError('Пользователь по указанному _id не найден'));
-    res.send(user);
+    return res.status(constants.HTTP_STATUS_OK).send(user);
   } catch (err) {
     if (err instanceof MongooseError.CastError) {
-      next(new BadRequestError('Невалидный id пользователя'));
+      return next(new BadRequestError('Невалидный id пользователя'));
     }
-    next(err);
+    return next(err);
   }
 };
 
@@ -53,7 +53,7 @@ export const updateUser = async (
     const updatedUser = await User.findByIdAndUpdate(
       res.locals.user,
       { name, about },
-      { new: true },
+      { new: true, runValidators: true },
     ).orFail(() => new NotFoundError('Пользователь с указанным _id не найден'));
     return res.status(constants.HTTP_STATUS_OK).send(updatedUser);
   } catch (err) {
@@ -71,7 +71,10 @@ export const updateAvatar = async (
 ) => {
   try {
     const { avatar } = req.body;
-    const updatedUser = await User.findByIdAndUpdate(res.locals.user, { avatar }, { new: true })
+    const updatedUser = await User.findByIdAndUpdate(
+      res.locals.user,
+      { avatar },
+      { new: true, runValidators: true })
       .orFail(() => new NotFoundError('Пользователь с указанным _id не найден'));
     return res.status(constants.HTTP_STATUS_OK).send(updatedUser);
   } catch (err) {
