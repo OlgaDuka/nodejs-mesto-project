@@ -67,7 +67,7 @@ export const likeCard = async (
     return res.status(constants.HTTP_STATUS_OK).send(cardLike);
   } catch (err) {
     if (err instanceof MongooseError.CastError) {
-      next(new BadRequestError('Передан невалидный _id карточки'));
+      return next(new BadRequestError('Передан невалидный _id карточки'));
     }
     return next(err);
   }
@@ -89,7 +89,7 @@ export const dislikeCard = async (
     return res.status(constants.HTTP_STATUS_OK).send(cardDislike);
   } catch (err) {
     if (err instanceof MongooseError.CastError) {
-      next(new BadRequestError('Передан невалидный _id карточки'));
+      return next(new BadRequestError('Передан невалидный _id карточки'));
     }
     return next(err);
   }
