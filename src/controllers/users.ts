@@ -74,7 +74,8 @@ export const updateAvatar = async (
     const updatedUser = await User.findByIdAndUpdate(
       res.locals.user,
       { avatar },
-      { new: true, runValidators: true })
+      { new: true, runValidators: true },
+    )
       .orFail(() => new NotFoundError('Пользователь с указанным _id не найден'));
     return res.status(constants.HTTP_STATUS_OK).send(updatedUser);
   } catch (err) {

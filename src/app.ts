@@ -6,7 +6,7 @@ import { AuthContext } from './types/auth-context';
 
 require('dotenv').config();
 
-const { PORT = 3000, MONGO_URL = ''} = process.env;
+const { PORT = 3000, MONGO_URL = '' } = process.env;
 const app = express();
 
 app.use(express.json());
