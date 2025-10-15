@@ -1,8 +1,11 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express from 'express';
 import mongoose from 'mongoose';
-import router from './routes';
+import { constants } from 'http2';
+import authrouter from './routes/auth';
 import errorHandler from './middleware/error-handler';
-import { AuthContext } from './types/auth-context';
+import authMiddleware from './middleware/auth';
+import userRouter from './routes/users';
+import cardRouter from './routes/cards';
 
 require('dotenv').config();
 
@@ -10,12 +13,15 @@ const { PORT = 3000, MONGO_URL = '' } = process.env;
 const app = express();
 
 app.use(express.json());
-app.use((_req: Request, res: Response<unknown, AuthContext>, next: NextFunction) => {
-  res.locals.user = { _id: '68e67f3d6f83d3bfc80004cb' };
-  next();
+app.use('/', authrouter);
+app.use(authMiddleware);
+app.use('/users', userRouter);
+app.use('/cards', cardRouter);
+app.use('', (_req, res) => {
+  res
+    .status(constants.HTTP_STATUS_NOT_FOUND)
+    .send({ message: 'Маршрут не найден' });
 });
-
-app.use(router);
 
 app.use(errorHandler);
 

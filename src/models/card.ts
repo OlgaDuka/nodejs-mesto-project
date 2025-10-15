@@ -1,12 +1,5 @@
 import { model, Schema } from 'mongoose';
-
-export interface ICard {
-  name: string;
-  link: string;
-  owner: Schema.Types.ObjectId;
-  likes: Schema.Types.ObjectId[];
-  createdAt: Date;
-}
+import { ICard } from '../types';
 
 const cardSchema = new Schema<ICard>({
   name: {
@@ -35,4 +28,5 @@ const cardSchema = new Schema<ICard>({
   },
 });
 
+// @ts-ignore
 export default model<ICard>('card', cardSchema);

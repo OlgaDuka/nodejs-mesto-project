@@ -2,13 +2,14 @@ import { NextFunction, Request, Response } from 'express';
 import { constants } from 'http2';
 import { Error as MongooseError } from 'mongoose';
 import Card from '../models/card';
-import { AuthContext } from '../types/auth-context';
+import { AuthContext } from '../types';
 import BadRequestError from '../errors/bad-request';
 import NotFoundError from '../errors/not-found';
+import ForbiddenError from '../errors/forbidden';
 
 export const getAllCards = async (_req: Request, res: Response, next: NextFunction) => {
   await Card.find({})
-    .then((cards) => res.send({ data: cards }))
+    .then((cards) => res.status(constants.HTTP_STATUS_OK).send({ data: cards }))
     .catch((err) => next(err));
 };
 
@@ -17,13 +18,14 @@ export const createCard = async (
   res: Response<unknown, AuthContext>,
   next: NextFunction,
 ) => {
+  const userId = res.locals.user?._id;
+  const { name, link } = req.body;
+
   try {
-    const { name, link } = req.body;
-    const userId = res.locals.user;
     const newCard = await Card.create({
       name,
       link,
-      owner: userId,
+      owner: { _id: Object(userId) },
       createdAt: Date.now(),
     });
     return res.status(constants.HTTP_STATUS_CREATED).send(newCard);
@@ -37,16 +39,21 @@ export const createCard = async (
 
 export const deleteCard = async (
   req: Request,
-  res: Response,
+  res: Response<unknown, AuthContext>,
   next: NextFunction,
 ) => {
   try {
-    const cardDel = await Card.findByIdAndDelete(req.params.cardId)
+    const cardDel = await Card.findById(req.params.cardId)
       .orFail(() => new NotFoundError('Карточка с указанным _id не найдена'));
+
+    if (cardDel !== res.locals.user) {
+      return next(new ForbiddenError('У вас нет доступа для удаления карточки'));
+    }
+
     return res.status(constants.HTTP_STATUS_OK).send(cardDel);
   } catch (err) {
     if (err instanceof MongooseError.CastError) {
-      next(new BadRequestError('Передан невалидный _id карточки'));
+      return next(new BadRequestError('Передан невалидный _id карточки'));
     }
     return next(err);
   }
@@ -79,7 +86,7 @@ export const dislikeCard = async (
   next: NextFunction,
 ) => {
   try {
-    const { _id: likes } = res.locals.user;
+    const likes = res.locals.user;
     const cardDislike = await Card.findByIdAndUpdate(
       req.params.cardId,
       { $pull: { likes } },
