@@ -13,7 +13,7 @@ export const getAllUsers = async (_req: Request, res: Response, next: NextFuncti
 };
 
 export const getProfile = async (req: Request, res: Response<unknown, AuthContext>, next: NextFunction) => {
-  const id = res.locals.user;
+  const id = res.locals.user?._id;
 
   await User.findById(id).orFail(() => new NotFoundError('Профиль не найден'))
     .then((profile) => res.status(constants.HTTP_STATUS_OK).send({ data: profile }))
@@ -42,7 +42,7 @@ export const updateUser = async (
   try {
     const { name, about } = req.body;
     const updatedUser = await User.findByIdAndUpdate(
-      res.locals.user,
+      res.locals.user?._id,
       { name, about },
       { new: true, runValidators: true },
     ).orFail(() => new NotFoundError('Пользователь с указанным _id не найден'));
@@ -63,7 +63,7 @@ export const updateAvatar = async (
   try {
     const { avatar } = req.body;
     const updatedUser = await User.findByIdAndUpdate(
-      res.locals.user,
+      res.locals.user?._id,
       { avatar },
       { new: true, runValidators: true },
     )

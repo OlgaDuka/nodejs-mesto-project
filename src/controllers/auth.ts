@@ -7,37 +7,21 @@ import User from '../models/user';
 import BadRequestError from '../errors/bad-request';
 import ConflictError from '../errors/conflict';
 import NotAuthError from '../errors/not-auth';
+require('dotenv').config();
+
+const { JWT_SECRET } = process.env;
 
 export const register = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  const {
-    name,
-    about,
-    avatar,
-    email,
-    password,
-  } = req.body;
-
+  const { password } = req.body;
   await bcrypt.hash(password, 10)
-    .then((hash: string) => User.create({
-      name,
-      about,
-      avatar,
-      email,
-      password: hash,
-    }))
+    .then((hash: string) => User.create({ ...req.body, password: hash }))
     .then((createdUser) => {
       const { _id } = createdUser;
-      res.status(constants.HTTP_STATUS_CREATED).send({
-        _id,
-        name,
-        about,
-        avatar,
-        email,
-      });
+      res.status(constants.HTTP_STATUS_CREATED).send({ ...req.body, _id });
     })
     .catch((err) => {
       if (err instanceof MongooseError.ValidationError) {
@@ -53,8 +37,8 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
   await User.findUserByCredentials(email, password)
     .then((user) => {
-      res.send({
-        token: jwt.sign({ user }, 'super-strong-secret', { expiresIn: '7d' }),
+      res.status(constants.HTTP_STATUS_OK).send({
+        token: jwt.sign({ _id: user._id }, String(JWT_SECRET), { expiresIn: '7d' }),
       });
     })
     .catch((err) => {

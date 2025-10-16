@@ -43,14 +43,17 @@ export const deleteCard = async (
   next: NextFunction,
 ) => {
   try {
-    const cardDel = await Card.findById(req.params.cardId)
+    const cardDelId = req.params.cardId;
+    const userId = res.locals.user?._id;
+    const cardFind = await Card.findById(cardDelId)
       .orFail(() => new NotFoundError('Карточка с указанным _id не найдена'));
 
-    if (cardDel !== res.locals.user) {
+    if (String(cardFind.owner) !== userId) {
       return next(new ForbiddenError('У вас нет доступа для удаления карточки'));
     }
+    const cardDel = await Card.findByIdAndDelete(cardDelId)
 
-    return res.status(constants.HTTP_STATUS_OK).send(cardDel);
+    return res.status(constants.HTTP_STATUS_OK).send({ data: cardDel });
   } catch (err) {
     if (err instanceof MongooseError.CastError) {
       return next(new BadRequestError('Передан невалидный _id карточки'));
@@ -65,9 +68,11 @@ export const likeCard = async (
   next: NextFunction,
 ) => {
   try {
+    const cardId = req.params.cardId;
+    const likes = res.locals.user?._id;
     const cardLike = await Card.findByIdAndUpdate(
-      req.params.cardId,
-      { $addToSet: { likes: res.locals.user } },
+      cardId,
+      { $addToSet: { likes } },
       { new: true },
     )
       .orFail(() => new NotFoundError('Передан несуществующий _id карточки'));
@@ -86,9 +91,10 @@ export const dislikeCard = async (
   next: NextFunction,
 ) => {
   try {
-    const likes = res.locals.user;
+    const cardId = req.params.cardId;
+    const likes = res.locals.user?._id;
     const cardDislike = await Card.findByIdAndUpdate(
-      req.params.cardId,
+      cardId,
       { $pull: { likes } },
       { new: true },
     )

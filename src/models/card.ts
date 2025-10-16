@@ -4,8 +4,8 @@ import { ICard } from '../types';
 const cardSchema = new Schema<ICard>({
   name: {
     type: String,
-    minLength: 2,
-    maxLength: 30,
+    minLength: [2, 'Минимальная длина поля - 2'],
+    maxLength: [30, 'Максимальная длина поля - 30'],
     required: true,
   },
   link: {

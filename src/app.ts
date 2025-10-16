@@ -14,9 +14,8 @@ const app = express();
 
 app.use(express.json());
 app.use('/', authrouter);
-app.use(authMiddleware);
-app.use('/users', userRouter);
-app.use('/cards', cardRouter);
+app.use('/users', authMiddleware, userRouter);
+app.use('/cards', authMiddleware, cardRouter);
 app.use('', (_req, res) => {
   res
     .status(constants.HTTP_STATUS_NOT_FOUND)

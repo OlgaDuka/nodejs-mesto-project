@@ -48,7 +48,6 @@ userSchema.static('findUserByCredentials', function findUserByCredentials(email:
         if (!matched) {
           return Promise.reject(new NotAuthError('Неправильные почта или пароль'));
         }
-
         return user;
       }));
 });
