@@ -1,10 +1,10 @@
 import { model, Schema } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
-import { IUser, UserModel } from '../types';
+import { IUser, IUserModel } from '../types';
 import NotAuthError from '../errors/not-auth';
 
-const userSchema = new Schema<IUser, UserModel>(
+const userSchema = new Schema<IUser, IUserModel>(
   {
     name: {
       type: String,
@@ -53,4 +53,4 @@ userSchema.static('findUserByCredentials', function findUserByCredentials(email:
 });
 
 // @ts-ignore
-export default model<IUser, UserModel>('user', userSchema);
+export default model<IUser, IUserModel>('user', userSchema);

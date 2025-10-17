@@ -16,35 +16,36 @@ export const register = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { password } = req.body;
-  await bcrypt.hash(password, 10)
-    .then((hash: string) => User.create({ ...req.body, password: hash }))
-    .then((createdUser) => {
-      const { _id } = createdUser;
-      res.status(constants.HTTP_STATUS_CREATED).send({ ...req.body, _id });
-    })
-    .catch((err) => {
+  try {
+    const { password } = req.body;
+    const hash = await bcrypt.hash(password, 10)
+    const createdUser = await User.create({ ...req.body, password: hash })
+    const { _id } = createdUser;
+
+    return res.status(constants.HTTP_STATUS_CREATED).send({ ...req.body, _id });
+  } catch (err) {
       if (err instanceof MongooseError.ValidationError) {
-        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
-      } else if (err.code === 11000) {
-        next(new ConflictError('Такой пользователь уже есть'));
-      } else next(err);
-    });
-};
+        return next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+      }
+      if (err instanceof Error && err.message.startsWith('11000')) {
+        return next(new ConflictError('Такой пользователь уже есть'));
+      }
+      return next(err);
+    }
+}
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
+    const user = await User.findUserByCredentials(email, password)
 
-  await User.findUserByCredentials(email, password)
-    .then((user) => {
-      res.status(constants.HTTP_STATUS_OK).send({
-        token: jwt.sign({ _id: user._id }, String(JWT_SECRET), { expiresIn: '7d' }),
-      });
-    })
-    .catch((err) => {
-      if (err instanceof MongooseError.ValidationError) {
-        next(new NotAuthError('Ошибка авторизации'));
-      }
-      next(err);
+    return res.status(constants.HTTP_STATUS_OK).send({
+      token: jwt.sign({ _id: user._id }, String(JWT_SECRET), { expiresIn: '7d' }),
     });
+  } catch (err) {
+      if (err instanceof MongooseError.ValidationError) {
+        return next(new NotAuthError('Ошибка авторизации'));
+      }
+      return next(err);
+  }
 };

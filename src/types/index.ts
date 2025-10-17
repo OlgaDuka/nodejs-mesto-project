@@ -13,7 +13,7 @@ export interface IUser {
   avatar?: string;
 }
 
-export interface UserModel extends Model<IUser> {
+export interface IUserModel extends Model<IUser> {
   // eslint-disable-next-line no-unused-vars
   findUserByCredentials: (email: string, password: string) => Promise<Document<unknown, any, IUser>>
 }
