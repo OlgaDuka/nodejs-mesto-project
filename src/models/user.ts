@@ -52,5 +52,4 @@ userSchema.static('findUserByCredentials', function findUserByCredentials(email:
       }));
 });
 
-// @ts-ignore
 export default model<IUser, IUserModel>('user', userSchema);

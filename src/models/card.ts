@@ -28,5 +28,4 @@ const cardSchema = new Schema<ICard>({
   },
 });
 
-// @ts-ignore
 export default model<ICard>('card', cardSchema);
