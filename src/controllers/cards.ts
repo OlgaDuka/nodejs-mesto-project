@@ -43,15 +43,15 @@ export const deleteCard = async (
   next: NextFunction,
 ) => {
   try {
-    const cardDelId = req.params.cardId;
+    const { cardId } = req.params;
     const userId = res.locals.user?._id;
-    const cardFind = await Card.findById(cardDelId)
+    const cardFind = await Card.findById(cardId)
       .orFail(() => new NotFoundError('Карточка с указанным _id не найдена'));
 
     if (String(cardFind.owner) !== userId) {
       return next(new ForbiddenError('У вас нет доступа для удаления карточки'));
     }
-    const cardDel = await Card.findByIdAndDelete(cardDelId)
+    const cardDel = await Card.findByIdAndDelete(cardId);
 
     return res.status(constants.HTTP_STATUS_OK).send({ data: cardDel });
   } catch (err) {
@@ -68,7 +68,7 @@ export const likeCard = async (
   next: NextFunction,
 ) => {
   try {
-    const cardId = req.params.cardId;
+    const { cardId } = req.params;
     const likes = res.locals.user?._id;
     const cardLike = await Card.findByIdAndUpdate(
       cardId,
@@ -91,7 +91,7 @@ export const dislikeCard = async (
   next: NextFunction,
 ) => {
   try {
-    const cardId = req.params.cardId;
+    const { cardId } = req.params;
     const likes = res.locals.user?._id;
     const cardDislike = await Card.findByIdAndUpdate(
       cardId,
