@@ -21,6 +21,6 @@ export default (req: Request, res: Response<unknown, AuthContext>, next: NextFun
     return next(new NotAuthError('Пользователь неавторизован'));
   }
 
-  res.locals.user = payload.user; // записываем пейлоуд в объект ответа
+  res.locals.user = payload; // записываем пейлоуд в объект ответа
   return next(); // пропускаем запрос дальше
 };

@@ -8,11 +8,13 @@ export const validateSignup = celebrate({
     email: Joi.string().required().email()
       .messages({
         'string.email': 'Поле "email" должно быть валидным',
+        'string.empty': 'Поле "email" не должно быть пустым',
         'any.required': 'Поле "email" обязательно',
       }),
     password: Joi.string().required()
       .messages({
-        'any.required': 'Пароль должен быть заполнен',
+        'string.empty': 'Пароль не должен быть пустым',
+        'any.required': 'Пароль обязателен',
       }),
     avatar: Joi.string().uri(),
   }),
@@ -23,11 +25,13 @@ export const validateSignin = celebrate({
     email: Joi.string().required().email()
       .messages({
         'string.email': 'Поле "email" должно быть валидным',
+        'string.empty': 'Поле "email" не должно быть пустым',
         'any.required': 'Поле "email" обязательно',
       }),
     password: Joi.string().required()
       .messages({
-        'any.required': 'Пароль должен быть заполнен',
+        'string.empty': 'Пароль не должен быть пустым',
+        'any.required': 'Пароль обязателен',
       }),
   }),
 });
@@ -47,13 +51,15 @@ export const validateUpdateUser = celebrate({
   [Segments.BODY]: Joi.object().keys({
     name: Joi.string().min(2).max(30)
       .messages({
-        'string.min': 'Поле name должно содержать не менее 2 символов',
-        'string.max': 'Поле name должно содержать не более 30 символов',
+        'string.empty': 'Поле "name" не должно быть пустым',
+        'string.min': 'Поле "name" должно содержать не менее 2 символов',
+        'string.max': 'Поле "name" должно содержать не более 30 символов',
       }),
     about: Joi.string().min(2).max(200)
       .messages({
-        'string.min': 'Поле about должно содержать не менее 2 символов',
-        'string.max': 'Поле about должно содержать не более 200 символов',
+        'string.empty': 'Поле "about" не должно быть пустым',
+        'string.min': 'Поле "about" должно содержать не менее 2 символов',
+        'string.max': 'Поле "about" должно содержать не более 200 символов',
       }),
   }),
 });
@@ -62,6 +68,7 @@ export const validateAvatar = celebrate({
   [Segments.BODY]: Joi.object().keys({
     avatar: Joi.string().pattern(urlRegex).required()
       .messages({
+        'string.empty': 'Поле ссылки не должно быть пустым',
         'string.pattern': 'Некорректная ссылка на изображение аватара',
         'any.required': 'Ссылка на изображение аватара является обязательной',
       }),
@@ -70,7 +77,13 @@ export const validateAvatar = celebrate({
 
 export const validateCreateCard = celebrate({
   [Segments.BODY]: Joi.object().keys({
-    name: Joi.string().min(2).max(30).required(),
+    name: Joi.string().min(2).max(30).required()
+      .messages({
+        'any.required': 'Поле "name" является обязательным',
+        'string.empty': 'Поле "name" не должно быть пустым',
+        'string.min': 'Поле "name" должно содержать не менее 2 символов',
+        'string.max': 'Поле "name" должно содержать не более 30 символов',
+      }),
     link: Joi.string().uri().required()
       .messages({
         'string.uri': 'Некорректная ссылка на изображение карточки',

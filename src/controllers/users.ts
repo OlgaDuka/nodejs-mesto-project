@@ -12,12 +12,19 @@ export const getAllUsers = async (_req: Request, res: Response, next: NextFuncti
     .catch((err) => next(err));
 };
 
-export const getProfile = async (req: Request, res: Response<unknown, AuthContext>, next: NextFunction) => {
-  const id = res.locals.user?._id;
+export const getProfile = async (_req: Request, res: Response<unknown, AuthContext>, next: NextFunction) => {
+  try {
+    const userId = res.locals.user?._id;
+    const profile = await User.findOne({ _id: Object(userId) })
+      .orFail(() => new NotFoundError('Профиль не найден'));
 
-  await User.findById(id).orFail(() => new NotFoundError('Профиль не найден'))
-    .then((profile) => res.status(constants.HTTP_STATUS_OK).send({ data: profile }))
-    .catch((err) => next(err));
+    return res.status(constants.HTTP_STATUS_OK).send(profile)
+  } catch (err) {
+    if (err instanceof Error && err.name === "CastError") {
+      return next(new BadRequestError("Невалидный id"));
+    }
+    return next(err);
+  }
 };
 
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
@@ -40,12 +47,14 @@ export const updateUser = async (
   next: NextFunction,
 ) => {
   try {
+    const userId = res.locals.user?._id;
     const { name, about } = req.body;
     const updatedUser = await User.findByIdAndUpdate(
-      res.locals.user?._id,
+      { _id: Object(userId) },
       { name, about },
       { new: true, runValidators: true },
     ).orFail(() => new NotFoundError('Пользователь с указанным _id не найден'));
+
     return res.status(constants.HTTP_STATUS_OK).send(updatedUser);
   } catch (err) {
     if (err instanceof MongooseError.ValidationError) {
@@ -61,13 +70,15 @@ export const updateAvatar = async (
   next: NextFunction,
 ) => {
   try {
+    const userId = res.locals.user?._id;
     const { avatar } = req.body;
     const updatedUser = await User.findByIdAndUpdate(
-      res.locals.user?._id,
+      { _id: Object(userId) },
       { avatar },
       { new: true, runValidators: true },
     )
       .orFail(() => new NotFoundError('Пользователь с указанным _id не найден'));
+
     return res.status(constants.HTTP_STATUS_OK).send(updatedUser);
   } catch (err) {
     if (err instanceof MongooseError.ValidationError) {

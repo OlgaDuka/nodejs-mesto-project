@@ -18,16 +18,16 @@ export const createCard = async (
   res: Response<unknown, AuthContext>,
   next: NextFunction,
 ) => {
-  const userId = res.locals.user?._id;
-  const { name, link } = req.body;
-
   try {
+    const userId = res.locals.user?._id;
+    const { name, link } = req.body;
     const newCard = await Card.create({
       name,
       link,
       owner: { _id: Object(userId) },
       createdAt: Date.now(),
     });
+
     return res.status(constants.HTTP_STATUS_CREATED).send(newCard);
   } catch (err) {
     if (err instanceof MongooseError.ValidationError) {
